@@ -2,7 +2,9 @@ package br.com.alura.technews.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager.VERTICAL
 import br.com.alura.technews.R
@@ -11,19 +13,29 @@ import br.com.alura.technews.model.Noticia
 import br.com.alura.technews.repository.NoticiaRepository
 import br.com.alura.technews.ui.activity.extensions.mostraErro
 import br.com.alura.technews.ui.recyclerview.adapter.ListaNoticiasAdapter
+import br.com.alura.technews.ui.viewmodel.ListaNoticiasViewModel
+import br.com.alura.technews.ui.viewmodel.factory.ListaNoticiasViewModelFactory
 import kotlinx.android.synthetic.main.activity_lista_noticias.*
 
 private const val TITULO_APPBAR = "Notícias"
 private const val MENSAGEM_FALHA_CARREGAR_NOTICIAS = "Não foi possível carregar as novas notícias"
 
 class ListaNoticiasActivity : AppCompatActivity() {
-
-    private val repository by lazy {
-        NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
-    }
+    
     private val adapter by lazy {
         ListaNoticiasAdapter(context = this)
     }
+
+    private val viewModel by lazy {
+        val repository = NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)  //cria o repositorio, depenpe para que tenha um
+                                                                                                // view model para a lista de noticias
+        val factory = ListaNoticiasViewModelFactory(repository)  //para criar essa ListaNoticiasViewModel que nao tem vinculo com o android,
+                                                                    // eh criado o factory que utiliza o repository que eh um dependencia do
+                                                                        // view model
+        val provedor = ViewModelProviders.of(this, factory)  //cria o provedor capaz de criar o view model
+        provedor.get(ListaNoticiasViewModel::class.java)  // view model que precisa de dependencia
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +43,8 @@ class ListaNoticiasActivity : AppCompatActivity() {
         title = TITULO_APPBAR
         configuraRecyclerView()
         configuraFabAdicionaNoticia()
+
+        Log.i("viewmodel", viewModel.toString())
     }
 
     override fun onResume() {
@@ -56,7 +70,7 @@ class ListaNoticiasActivity : AppCompatActivity() {
     }
 
     private fun buscaNoticias() {
-        repository.buscaTodos(
+        viewModel.buscaTodos(
             quandoSucesso = {
                 adapter.atualiza(it)
             }, quandoFalha = {
