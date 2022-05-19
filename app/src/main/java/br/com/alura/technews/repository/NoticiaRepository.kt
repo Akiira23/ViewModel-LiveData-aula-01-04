@@ -29,11 +29,15 @@ class NoticiaRepository(
     }
 
     fun salva(
-        noticia: Noticia,
-        quandoSucesso: (noticiaNova: Noticia) -> Unit,
-        quandoFalha: (erro: String?) -> Unit
-    ) {
-        salvaNaApi(noticia, quandoSucesso, quandoFalha)
+        noticia: Noticia
+    ): MutableLiveData<Resource<Void?>> {
+        val liveData = MutableLiveData<Resource<Void?>>()
+        salvaNaApi(noticia, quandoSucesso = {
+            liveData.value = Resource(null)
+        }, quandoFalha = {
+            liveData.value = Resource(dado = null, erro = it)
+        })
+        return liveData
     }
 
     fun remove(
@@ -45,11 +49,15 @@ class NoticiaRepository(
     }
 
     fun edita(
-        noticia: Noticia,
-        quandoSucesso: (noticiaEditada: Noticia) -> Unit,
-        quandoFalha: (erro: String?) -> Unit
-    ) {
-        editaNaApi(noticia, quandoSucesso, quandoFalha)
+        noticia: Noticia
+    ) : MutableLiveData<Resource<Void?>> {
+        val liveData = MutableLiveData<Resource<Void?>>()
+        editaNaApi(noticia, quandoSucesso = {
+            liveData.value = Resource(null)
+        }, quandoFalha = {
+            liveData.value = Resource(dado = null, erro = it)
+        })
+        return liveData
     }
 
     fun buscaPorId(
